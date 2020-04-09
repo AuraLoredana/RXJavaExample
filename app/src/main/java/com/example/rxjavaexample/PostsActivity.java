@@ -45,7 +45,7 @@ public class PostsActivity extends AppCompatActivity {
 
         getPostsObservable()
                 .subscribeOn(Schedulers.io())
-                .flatMap((Function<Post, ObservableSource<Post>>) this::getCommentsObservable)
+                .concatMap((Function<Post, ObservableSource<Post>>) this::getCommentsObservable)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<Post>() {
             @Override

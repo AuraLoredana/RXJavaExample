@@ -11,7 +11,8 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".BufferActivity"></activity>
+        <activity android:name=".DebounceActivity"></activity>
+        <activity android:name=".BufferActivity" />
         <activity
                 android:name=".PostsActivity"
                 android:label="@string/title_activity_posts"
