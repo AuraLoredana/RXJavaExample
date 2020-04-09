@@ -8,9 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.rxjavaexample.models.Comment;
 import com.example.rxjavaexample.models.Post;
-import com.example.rxjavaexample.networking.Service;
+import com.example.rxjavaexample.networking.RetrofitService;
 
 import java.util.List;
 import java.util.Random;
@@ -46,71 +45,58 @@ public class PostsActivity extends AppCompatActivity {
 
         getPostsObservable()
                 .subscribeOn(Schedulers.io())
-                .flatMap(new Function<Post, ObservableSource<Post>>() {
-                    @Override
-                    public ObservableSource<Post> apply(Post post) throws Exception {
-                        return getCommentsObservable(post);
-                    }
-                })
+                .flatMap((Function<Post, ObservableSource<Post>>) this::getCommentsObservable)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<Post>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        disposables.add(d);
-                    }
+            @Override
+            public void onSubscribe(Disposable d) {
+                disposables.add(d);
+            }
 
-                    @Override
-                    public void onNext(Post post) {
-                        updatePost(post);
-                    }
+            @Override
+            public void onNext(Post post) {
+                updatePost(post);
+            }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e(TAG, "onError: ", e);
-                    }
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "onError:" + e);
+            }
 
-                    @Override
-                    public void onComplete() {
-                    }
-                });
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "onComplete: isComplete");
+            }
+        });
     }
 
-    private Observable<Post> getPostsObservable(){
-        return Service.getRequestApi()
+    private Observable<Post> getPostsObservable() {
+        return RetrofitService.getRequestApi()
                 .getPosts()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .flatMap(new Function<List<Post>, ObservableSource<Post>>() {
-                    @Override
-                    public ObservableSource<Post> apply(final List<Post> posts) throws Exception {
-                        adapter.setPosts(posts);
-                        return Observable.fromIterable(posts)
-                                .subscribeOn(Schedulers.io());
-                    }
-                });
+                .flatMap((Function<List<Post>, ObservableSource<Post>>)
+                        posts -> Observable.fromIterable(posts)
+                                .subscribeOn(Schedulers.io()));
+
     }
 
-    private void updatePost(Post post){
+    private void updatePost(Post post) {
         adapter.updatePost(post);
     }
 
-    private Observable<Post> getCommentsObservable(final Post post){
-        return Service.getRequestApi()
-                .getComments(post.getId())
-                .map(comments -> {
-
-                    int delay = ((new Random()).nextInt(5) + 1) * 1000; // sleep thread for x ms
-                    Thread.sleep(delay);
-                    Log.d(TAG, "apply: sleeping thread " + Thread.currentThread().getName() + " for " + String.valueOf(delay)+ "ms");
-
-                    post.setComments(comments);
-                    return post;
-                })
-                .subscribeOn(Schedulers.io());
+    private Observable<Post> getCommentsObservable(final Post post) {
+        return RetrofitService.getRequestApi().getComments(post.getId()).map(comments -> {
+            int delay = ((new Random()).nextInt(5) + 1) * 1000;
+            Thread.sleep(delay);
+            Log.d(TAG, "sleep" + Thread.currentThread().getName() + delay);
+            post.setComments(comments);
+            return post;
+        }).subscribeOn(Schedulers.io());
 
     }
 
-    private void initRecyclerView(){
+    private void initRecyclerView() {
         adapter = new RecyclerAdapter();
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);

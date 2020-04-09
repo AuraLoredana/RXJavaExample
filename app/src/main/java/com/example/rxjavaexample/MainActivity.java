@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
     TextView textView;
+    Button btn;
     CompositeDisposable disposable = new CompositeDisposable();
 
     @Override
@@ -25,12 +27,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView = findViewById(R.id.posts);
-        textView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, PostsActivity.class));
-            }
-        });
+        btn = findViewById(R.id.postsButton);
+        textView.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, PostsActivity.class)));
+        btn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, BufferActivity.class)));
         Observable<Task> taskObservable = Observable.fromIterable(DataSource.createTasks()).subscribeOn(Schedulers.io()).filter(task -> {
             try {
                 Thread.sleep(1000);
